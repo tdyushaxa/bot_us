@@ -3,12 +3,16 @@ from aiogram import types
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ReplyKeyboardRemove
+
+from keyboards.default.menuKeyboards import agree
 from keyboards.inline.callbackData import talim_callback
 from keyboards.inline.inline_keyboard import talim
 from loader import dp, bot
 import time as wait_time
 from states.talim_state import Ustoz_state, Ish_joyi, Sherik_kerak, Shogir_kerak, Xodim_kerak
+
 phone_number = r'^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$'
+admin = 1091980088
 
 
 @dp.message_handler(Text(equals='Talim'), state=Ustoz_state.all_states)
@@ -184,7 +188,6 @@ Maqsadingizni qisqacha yozib bering.
 
 @dp.message_handler(state=Ustoz_state.goal)
 async def get_goal(msg: types.Message, state: FSMContext):
-    admin = 1091980088
     goal = msg.text
     await state.update_data({
         'goal': goal
@@ -193,7 +196,9 @@ async def get_goal(msg: types.Message, state: FSMContext):
     fullname = data.get('fullname')
     age = data.get('age')
     skills = data.get('skill')
-    hashtag = ' #'.join(skills)
+    hashtag = ''
+    for x in skills:
+        hashtag += x.replace(x, ' #' + x)
     skill = ','.join(skills)
     phone = data.get('phone')
     area = data.get('area')
@@ -204,7 +209,6 @@ async def get_goal(msg: types.Message, state: FSMContext):
     username = msg.from_user.username
     message = f'''
     Ustoz kerak:
-
 🎓 Shogird: {fullname}
 🌐 Yosh: {age}
 📚 Texnologiya: {skill}
@@ -215,12 +219,56 @@ async def get_goal(msg: types.Message, state: FSMContext):
 👨🏻‍💻 Kasbi: {job} 
 🕰 Murojaat qilish vaqti: {time}
 🔎 Maqsad: {goal}
-#shogird  {hashtag}
+#shogird  {hashtag} #{area}
     '''
     wait_time.sleep(2)
-    await bot.send_message(admin, message)
-    await msg.answer('maumotlaringi adminga yuborildi 12-24 soat oralag\'ida kanalda e\'lon qilinadi')
-    await state.finish()
+    await msg.answer(message)
+    await msg.answer("malumotlaringizni to'g'riligiga ishonch hosil qiling! ", reply_markup=agree)
+    await Ustoz_state.next()
+
+
+@dp.message_handler(state=Ustoz_state.finish)
+async def set_finish(msg: types.Message, state: FSMContext):
+    text = msg.text
+    if text == 'Ha':
+        data = await state.get_data()
+        fullname = data.get('fullname')
+        age = data.get('age')
+        skills = data.get('skill')
+        hashtag = ''
+        for x in skills:
+            hashtag += x.replace(x, ' #' + x)
+        skill = ','.join(skills)
+        phone = data.get('phone')
+        area = data.get('area')
+        price = data.get('price')
+        job = data.get('job')
+        time = data.get('time')
+        goal = data.get('goal')
+        username = msg.from_user.username
+        message = f'''
+        Ustoz kerak:
+🎓 Shogird: {fullname}
+🌐 Yosh: {age}
+📚 Texnologiya: {skill}
+🇺🇿 Telegram: @{username}
+📞 Aloqa: {phone} 
+🌐 Hudud: {area} 
+💰 Narxi: {price} 
+‍💻 Kasbi: {job} 
+🕰 Murojaat qilish vaqti: {time}
+🔎 Maqsad: {goal}
+#shogird {hashtag} #{area}
+            '''
+        wait_time.sleep(1)
+        await bot.send_message(admin, message)
+        await msg.answer('maumotlaringi adminga yuborildi 12-24 soat oralag\'ida kanalda e\'lon qilinadi',
+                         reply_markup=ReplyKeyboardRemove())
+        await state.finish()
+    else:
+        await state.finish()
+        await msg.answer('malumotlaringiz qabul qilinmadi', reply_markup=ReplyKeyboardRemove())
+        await msg.answer('Tanlang', reply_markup=talim)
 
 
 @dp.callback_query_handler(talim_callback.filter(item__name="job"))
@@ -233,7 +281,7 @@ Har biriga javob bering.
         """, reply_markup=ReplyKeyboardRemove()
     )
     await call.answer(cache_time=60)
-    await call.message.answer('ism va familayangizni kriiting')
+    await call.message.answer('ism va familayangizni kriiting', reply_markup=ReplyKeyboardRemove())
     await Ish_joyi.fullname.set()
 
 
@@ -245,7 +293,7 @@ async def ish_get_fullname(msg: types.Message, state: FSMContext):
             'fullname': fullname
         })
         await msg.answer('Yoshingizni kiriting')
-        await Ustoz_state.next()
+        await Ish_joyi.next()
     else:
         await msg.answer('ismingiz va familayingiz 5 ta harfdan ko\'p bo\'lishi lozim ')
         await Ish_joyi.fullname.set()
@@ -385,7 +433,6 @@ Maqsadingizni qisqacha yozib bering.
 
 @dp.message_handler(state=Ish_joyi.goal)
 async def ish_get_goal(msg: types.Message, state: FSMContext):
-    admin = 1091980088
     goal = msg.text
     await state.update_data({
         'goal': goal
@@ -395,6 +442,9 @@ async def ish_get_goal(msg: types.Message, state: FSMContext):
     age = data.get('age')
     skills = data.get('skill')
     skill = ','.join(skills)
+    hashtag = ''
+    for x in skills:
+        hashtag += x.replace(x, ' #' + x)
     phone = data.get('phone')
     area = data.get('area')
     price = data.get('price')
@@ -416,12 +466,58 @@ async def ish_get_goal(msg: types.Message, state: FSMContext):
 👨🏻‍💻 Kasbi: {job} 
 🕰 Murojaat qilish vaqti: {time}
 🔎 Maqsad: {goal}
-#xodim #{area}
+#xodim {hashtag} #{area}
     '''
-    wait_time.sleep(2)
-    await bot.send_message(admin, message)
-    await bot.send_message('maumotlaringi adminga yuborildi 12-24 soat oralag\'ida kanalda e\'lon qilinadi')
-    await state.finish()
+    wait_time.sleep(1)
+    await msg.answer(message)
+    await msg.answer("malumotlaringizni to'g'riligiga ishonch hosil qiling! ", reply_markup=agree)
+    await Ish_joyi.next()
+
+
+@dp.message_handler(state=Ish_joyi.finish)
+async def set_ish_finish(msg: types.Message, state: FSMContext):
+    text = msg.text
+    if text == 'Ha':
+        data = await state.get_data()
+        fullname = data.get('fullname')
+        age = data.get('age')
+        skills = data.get('skill')
+        skill = ','.join(skills)
+        hashtag = ''
+        for x in skills:
+            hashtag += x.replace(x, ' #' + x)
+        phone = data.get('phone')
+        area = data.get('area')
+        price = data.get('price')
+        job = data.get('job')
+        time = data.get('time')
+        goal = data.get('goal')
+        username = msg.from_user.username
+
+        message = f'''
+    Ish joyi kerak::
+
+‍💼 Xodim: {fullname}
+🌐 Yosh: {age}
+📚 Texnologiya: {skill}
+Telegram: @{username}
+📞 Aloqa: {phone} 
+🌐 Hudud: {area} 
+💰 Narxi: {price} 
+‍💻 Kasbi: {job} 
+🕰 Murojaat qilish vaqti: {time}
+🔎 Maqsad: {goal}
+#xodim {hashtag} #{area}
+            '''
+        wait_time.sleep(2)
+        await bot.send_message(admin, message)
+        await state.finish()
+        await msg.answer('maumotlaringi adminga yuborildi 12-24 soat oralag\'ida kanalda e\'lon qilinadi',
+                               reply_markup=ReplyKeyboardRemove())
+    else:
+        await state.finish()
+        await msg.answer('malumotlaringiz qabul qilinmadi', reply_markup=ReplyKeyboardRemove())
+        await msg.answer('Tanlang', reply_markup=talim)
 
 
 @dp.callback_query_handler(talim_callback.filter(item__name="sherik"))
@@ -526,7 +622,6 @@ Maqsadingizni qisqacha yozib bering.
 
 @dp.message_handler(state=Sherik_kerak.goal)
 async def sherik_get_goal(msg: types.Message, state: FSMContext):
-    admin = 1091980088
     goal = msg.text
     await state.update_data({
         'goal': goal
@@ -535,6 +630,9 @@ async def sherik_get_goal(msg: types.Message, state: FSMContext):
     fullname = data.get('fullname')
     skills = data.get('skill')
     skill = ','.join(skills)
+    hashtag = ''
+    for x in skills:
+        hashtag += x.replace(x, ' #' + x)
     area = data.get('area')
     price = data.get('price')
     time = data.get('time')
@@ -550,12 +648,51 @@ async def sherik_get_goal(msg: types.Message, state: FSMContext):
 💰 Narxi: {price} 
 🕰 Murojaat qilish vaqti: {time}
 🔎 Maqsad: {goal}
-#sherik #{skills[:3]} #{area}
+#sherik {hashtag} #{area}
     '''
     wait_time.sleep(2)
-    await bot.send_message(admin, message)
-    await bot.send_message('maumotlaringi adminga yuborildi 12-24 soat oralag\'ida kanalda e\'lon qilinadi')
-    await state.finish()
+    await msg.answer(message)
+    await msg.answer("malumotlaringizni to'g'riligiga ishonch hosil qiling! ", reply_markup=agree)
+    await Sherik_kerak.next()
+
+
+@dp.message_handler(state=Sherik_kerak.finish)
+async def set_sherik_finish(msg: types.message, state: FSMContext):
+    text = msg.text
+    if text == 'Ha':
+        data = await state.get_data()
+        fullname = data.get('fullname')
+        skills = data.get('skill')
+        skill = ','.join(skills)
+        hashtag = ''
+        for x in skills:
+            hashtag += x.replace(x, ' #' + x)
+        area = data.get('area')
+        price = data.get('price')
+        time = data.get('time')
+        goal = data.get('goal')
+        username = msg.from_user.username
+        message = f'''
+    Sherik kerak:
+
+🏅 Sherik: {fullname}
+📚 Texnologiya: {skill}
+🇺🇿 Telegram: @{username}
+🌐 Hudud: {area} 
+💰 Narxi: {price} 
+🕰 Murojaat qilish vaqti: {time}
+🔎 Maqsad: {goal}
+#sherik {hashtag} #{area}
+            '''
+        wait_time.sleep(2)
+        await bot.send_message(admin, message)
+        await msg.answer('maumotlaringi adminga yuborildi 12-24 soat oralag\'ida kanalda e\'lon qilinadi',
+                         reply_markup=ReplyKeyboardRemove())
+        await state.finish()
+    else:
+        await state.finish()
+        await msg.answer('malumotlaringiz qabul qilinmadi', reply_markup=ReplyKeyboardRemove())
+        await msg.answer('Tanlang', reply_markup=talim)
 
 
 @dp.callback_query_handler(talim_callback.filter(item__name="shogird"))
@@ -720,7 +857,6 @@ Maqsadingizni qisqacha yozib bering.
 
 @dp.message_handler(state=Shogir_kerak.goal)
 async def shogird_get_goal(msg: types.Message, state: FSMContext):
-    admin = 1091980088
     goal = msg.text
     await state.update_data({
         'goal': goal
@@ -730,6 +866,9 @@ async def shogird_get_goal(msg: types.Message, state: FSMContext):
     age = data.get('age')
     skills = data.get('skill')
     skill = ','.join(skills)
+    hashtag = ''
+    for x in skills:
+        hashtag += x.replace(x, ' #' + x)
     phone = data.get('phone')
     area = data.get('area')
     price = data.get('price')
@@ -750,12 +889,57 @@ async def shogird_get_goal(msg: types.Message, state: FSMContext):
 👨🏻‍💻 Kasbi: {job} 
 🕰 Murojaat qilish vaqti: {time}
 🔎 Maqsad: {goal}
-#ustoz
+#ustoz {hashtag} #{area}
     '''
     wait_time.sleep(2)
-    await bot.send_message(admin, message)
-    await msg.answer('maumotlaringi adminga yuborildi 12-24 soat oralag\'ida kanalda e\'lon qilinadi')
-    await state.finish()
+    await msg.answer(message)
+    await msg.answer("malumotlaringizni to'g'riligiga ishonch hosil qiling! ", reply_markup=agree)
+    await Shogir_kerak.next()
+
+
+@dp.message_handler(state=Shogir_kerak.finish)
+async def set_finish_shogird(msg: types.Message, state: FSMContext):
+    text = msg.text
+    if text == 'Ha':
+        data = await state.get_data()
+        fullname = data.get('fullname')
+        age = data.get('age')
+        skills = data.get('skill')
+        skill = ','.join(skills)
+        hashtag = ''
+        for x in skills:
+            hashtag += x.replace(x, ' #' + x)
+        phone = data.get('phone')
+        area = data.get('area')
+        price = data.get('price')
+        job = data.get('job')
+        time = data.get('time')
+        goal = data.get('goal')
+        username = msg.from_user.username
+        message = f'''
+    Shogird kerak:
+
+🎓 Shogird: {fullname}
+🌐 Yosh: {age}
+📚 Texnologiya: {skill}
+🇺🇿 Telegram: @{username}
+📞 Aloqa: {phone} 
+🌐 Hudud: {area} 
+💰 Narxi: {price} 
+‍💻 Kasbi: {job} 
+🕰 Murojaat qilish vaqti: {time}
+🔎 Maqsad: {goal}
+#ustoz {hashtag} #{area}
+            '''
+        wait_time.sleep(2)
+        await bot.send_message(admin, message)
+        await msg.answer('maumotlaringi adminga yuborildi 12-24 soat oralag\'ida kanalda e\'lon qilinadi',
+                         reply_markup=ReplyKeyboardRemove())
+        await state.finish()
+    else:
+        await state.finish()
+        await msg.answer('malumotlaringiz qabul qilinmadi', reply_markup=ReplyKeyboardRemove())
+        await msg.answer('Tanlang', reply_markup=talim)
 
 
 @dp.callback_query_handler(talim_callback.filter(item__name="xodim"))
@@ -906,8 +1090,7 @@ async def get_job_time(msg: types.Message, state: FSMContext):
 
 
 @dp.message_handler(state=Xodim_kerak.addition)
-async def get_goal(msg: types.Message, state: FSMContext):
-    admin = 1091980088
+async def get_xodim_goal(msg: types.Message, state: FSMContext):
     addition = msg.text
     await state.update_data({
         'addition': addition
@@ -915,6 +1098,9 @@ async def get_goal(msg: types.Message, state: FSMContext):
     data = await state.get_data()
     idora = data.get('idora')
     skills = data.get('skill')
+    hashtag = ''
+    for x in skills:
+        hashtag += x.replace(x, ' #' + x)
     skill = ','.join(skills)
     phone = data.get('phone')
     area = data.get('area')
@@ -938,9 +1124,54 @@ Xodim kerak:
 💰 Maosh: {price}
 ‼️ Qo`shimcha: {addition}
 
-#ishJoyi
+#ishJoyi {hashtag} #{area}
     '''
     wait_time.sleep(2)
-    await bot.send_message(admin, message)
-    await msg.answer('maumotlaringi adminga yuborildi 12-24 soat oralag\'ida kanalda e\'lon qilinadi')
-    await state.finish()
+    await msg.answer(message)
+    await msg.answer("malumotlaringizni to'g'riligiga ishonch hosil qiling! ", reply_markup=agree)
+    await Xodim_kerak.next()
+
+
+@dp.message_handler(state=Xodim_kerak.finish)
+async def set_xodim_finish(msg: types.Message, state: FSMContext):
+    text = msg.text
+    if text == 'Ha':
+        data = await state.get_data()
+        idora = data.get('idora')
+        skills = data.get('skill')
+        hashtag = ''
+        for x in skills:
+            hashtag += x.replace(x, ' #' + x)
+        skill = ','.join(skills)
+        phone = data.get('phone')
+        area = data.get('area')
+        price = data.get('price')
+        responsible = data.get('responsible')
+        time = data.get('time')
+        job_time = data.get('job_time')
+        addition = data.get('addition')
+        username = msg.from_user.username
+        message = f'''
+    Xodim kerak:
+
+🏢 Idora: {idora}
+📚 Texnologiya: {skill}
+🇺🇿 Telegram: {username}
+📞 Aloqa: {phone}
+🌐 Hudud: {area} 
+✍️ Mas'ul: {responsible}
+🕰 Murojaat vaqti: {time}
+🕰 Ish vaqti: {job_time}
+💰 Maosh: {price}
+‼️ Qo`shimcha: {addition}
+#ishJoyi {hashtag} #{area}
+            '''
+        wait_time.sleep(2)
+        await bot.send_message(admin, message)
+        await msg.answer('maumotlaringi adminga yuborildi 12-24 soat oralag\'ida kanalda e\'lon qilinadi',
+                         reply_markup=ReplyKeyboardRemove())
+        await state.finish()
+    else:
+        await state.finish()
+        await msg.answer('malumotlaringiz qabul qilinmadi', reply_markup=ReplyKeyboardRemove())
+        await msg.answer('Tanlang', reply_markup=talim)
