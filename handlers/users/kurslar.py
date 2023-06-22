@@ -1,6 +1,5 @@
 import re
 import time as wait_time
-
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
@@ -227,6 +226,7 @@ O'quv kurslar:
         await bot.send_message(admin, message)
         await msg.answer('maumotlaringi adminga yuborildi 12-24 soat oralag\'ida kanalda e\'lon qilinadi',
                          reply_markup=ReplyKeyboardRemove())
+        await msg.answer('Tanlang', reply_markup=menu)
         await state.finish()
     else:
         await state.finish()
